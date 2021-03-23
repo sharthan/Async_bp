@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Async.art artdemo</title>
+  <script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+  <script language="javascript" type="text/javascript" src="script/async_token_abi.js"></script>
+  <script language="javascript" type="text/javascript" src="script/async_abi.js"></script>
+  <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="application/javascript"></script>
+</head>
+
+<body>
+  <!-- connect to Ethereum -->
+  <button onclick="connect()">Enable Ethereum</button>
+  <div class="network">
+    <h2 id="status"></h2>
+    <h2 id="nettwork"></h2>
+  </div>
+  <input id="inputToken" type="text" name="" value="768" onchange="inputUpdate()">
+  <button onclick="owner()">Layer owner</button>
+  <button onclick="getState()">Layer value</button>
+  <!-- <button  onclick="update(youOwnThisLayer, [2], youOwnThisLayer)">Update layer</button> -->
+</body>
+
+</html>
+
+<script type="text/javascript">
+  // Prerequisits. https://www.npmjs.com/package/http-server
+  // Then run form folder dir: http-server
+  var currentLeverValues = []
+  //Add the token id for all the token layers here. 768 is just an example layer added by me.
+  var tokenID = $("#inputToken").val()
+  const provider = new ethers.providers.Web3Provider(window.ethereum)
+  var signer = provider.getSigner();
+  var asyncAddress = "0x4F37310372dd39d451f7022EE587FA8B9F72d80B"
+  const asyncContract = new ethers.Contract(asyncAddress, asyncAbi, provider);
+  var ownerOfToken = []
+  var controlToken
+  var layer
+
+  function inputUpdate() {
+    tokenID = $("#inputToken").val()
+  }
+
+  // connects to eth network
+  function connect() {
+    //Will Start the metamask extension
+    ethereum.request({
+      method: 'eth_requestAccounts'
+    });
+    checkNettwork()
+    console.log("Is connectd to MM: " + ethereum.isMetaMask)
+  };
+
+  const contractWithSigner = asyncContract.connect(signer)
+
+  //Checks which network you are connected to. 1 is main net and 4 is Rinkeby
+  function checkNettwork() {
+    if (ethereum.networkVersion == 4) {
+      //Async Contract on Rinkeby: 0x4F37310372dd39d451f7022EE587FA8B9F72d80B
+      asyncAddress = "0x4F37310372dd39d451f7022EE587FA8B9F72d80B"
+      $("#nettwork").text("You are connected to Rinkeby test network")
+    } else if (ethereum.networkVersion == 1) {
+      //Async Contract on Mainnet: 0xb6dae651468e9593e4581705a09c10a76ac1e0c8
+      asyncAddress = "0xb6dae651468e9593e4581705a09c10a76ac1e0c8"
+      $("#nettwork").text("You are connected to the main network")
+    } else {
+      asyncAddress = ""
+      $("#nettwork").text("Please connect to the Mainet or the Rinkeby test nettwork")
+    }
+  }
+
+
+  var currentLeverValuesAll = []
+
+  //Connects to the layers and get the position of all tha pieces
+  async function getState() {
+    controlToken = []
+
+    controlToken = await asyncContract.getControlToken(tokenID);
+
+    currentLeverValues = []
+
+    for (var i = 0; i < controlToken.length; i++) {
+      if (i % 3 == 2) { // every 3rd value is a current lever setting [min, max, current, min, max, current]
+        console.log(i)
+        console.log(currentLeverValues)
+        currentLeverValues.push(controlToken[i].toString())
+      }
+    }
+    //Showes lever values
+    $("#status").text(currentLeverValues)
+  }
+
+  //Get the Eth address from all the token holders of layers
+  async function owner() {
+    ownerOfToken = await asyncContract.ownerOf(tokenID)
+    //Showes wallet address of token owner.
+    $("#status").text(ownerOfToken)
+  }
+
+  // // This wil update the token layer. This only works if a new walue is passed to the "newValue". The same value wil fail.
+  // async function update(layer, layerPosition, newValue) {
+  //     txChangeToken = await contractWithSigner.useControlToken([layer], [layerPosition], [newValue])
+  //     //Checks to see if block is mined to the BC
+  //     txChangeToken.wait(1).then(function(value, error) {
+  //       if (value.confirmations > 0) {
+  //         console.log("Change made to token " + tokenID[layer])
+  //         getState()
+  //       } else {
+  //         //No change made
+  //         console.log("Error on change")
+  //         getState()
+  //       }
+  //     });
+  //     console.log(txChangeToken)
+  //   }
+  // }
+
+  // Force page refreshes on network changes
+  {
+    // The "any" network will allow spontaneous network changes
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    provider.on("network", (newNetwork, oldNetwork) => {
+      // When a Provider makes its initial connection, it emits a "network"
+      // event with a null oldNetwork along with the newNetwork. So, if the
+      // oldNetwork exists, it represents a changing network
+      if (oldNetwork) {
+        window.location.reload();
+      }
+    });
+  }
+</script>
