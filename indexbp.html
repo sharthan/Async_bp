@@ -33,7 +33,12 @@
   var currentLeverValues = []
   //Add the token id for all the token layers here. 768 is just an example layer added by me.
   var tokenID = $("#inputToken").val()
+
+  //Connect to the Ethereum network with MetaMask or Infura
   const provider = new ethers.providers.Web3Provider(window.ethereum)
+  //   const provider = new ethers.providers.JsonRpcProvider("https://rinkeby.infura.io/v3/XXXXXXXXXXXXXXXXXXXXXXXX"
+
+
   var signer = provider.getSigner();
   var asyncAddress = "0x4F37310372dd39d451f7022EE587FA8B9F72d80B"
   const asyncContract = new ethers.Contract(asyncAddress, asyncAbi, provider);
