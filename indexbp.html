@@ -22,7 +22,12 @@
   <input id="inputToken" type="text" name="" value="768" onchange="inputUpdate()">
   <button onclick="owner()">Layer owner</button>
   <button onclick="getState()">Layer value</button>
-  <!-- <button  onclick="update(youOwnThisLayer, [2], youOwnThisLayer)">Update layer</button> -->
+  <button onclick="update()">Update</button>
+
+<div id="layerUpdate">
+</div>
+
+  <!-- <button  onclick="update(layerUpdater.val())">Update layer</button> -->
 </body>
 
 </html>
@@ -56,8 +61,14 @@
     ethereum.request({
       method: 'eth_requestAccounts'
     });
-    checkNettwork()
-    console.log("Is connectd to MM: " + ethereum.isMetaMask)
+    //Checks if the user is connected to the ETH network.
+    if (ethereum.isConnected()) {
+      checkNettwork()
+      console.log("Is connectd to MM: " + ethereum.isMetaMask)
+    } else {
+      console.log("You are not connected to ETH network")
+    }
+
   };
 
   const contractWithSigner = asyncContract.connect(signer)
@@ -79,7 +90,9 @@
   }
 
 
-  var currentLeverValuesAll = []
+var currentLeverValuesAll = []
+var allMin = []
+var allMax = []
 
   //Connects to the layers and get the position of all tha pieces
   async function getState() {
@@ -88,16 +101,28 @@
     controlToken = await asyncContract.getControlToken(tokenID);
 
     currentLeverValues = []
+    allMin = []
+    allMax = []
 
     for (var i = 0; i < controlToken.length; i++) {
       if (i % 3 == 2) { // every 3rd value is a current lever setting [min, max, current, min, max, current]
-        console.log(i)
-        console.log(currentLeverValues)
+        //console.log(i)
+        //console.log(currentLeverValues)
         currentLeverValues.push(controlToken[i].toString())
       }
+      if (i % 3 == 0) { // Min values for layers
+        allMin.push(controlToken[i].toString())
+      }
+      if (i % 3 == 1) { // max values for layers
+        //console.log(i)
+        //console.log(currentLeverValues)
+        allMax.push(controlToken[i].toString())
+      }
+
     }
     //Showes lever values
     $("#status").text(currentLeverValues)
+    addChoices()
   }
 
   //Get the Eth address from all the token holders of layers
@@ -105,25 +130,90 @@
     ownerOfToken = await asyncContract.ownerOf(tokenID)
     //Showes wallet address of token owner.
     $("#status").text(ownerOfToken)
+    //Adds drop down selectors.
   }
 
-  // // This wil update the token layer. This only works if a new walue is passed to the "newValue". The same value wil fail.
-  // async function update(layer, layerPosition, newValue) {
-  //     txChangeToken = await contractWithSigner.useControlToken([layer], [layerPosition], [newValue])
-  //     //Checks to see if block is mined to the BC
-  //     txChangeToken.wait(1).then(function(value, error) {
-  //       if (value.confirmations > 0) {
-  //         console.log("Change made to token " + tokenID[layer])
-  //         getState()
-  //       } else {
-  //         //No change made
-  //         console.log("Error on change")
-  //         getState()
-  //       }
-  //     });
-  //     console.log(txChangeToken)
-  //   }
-  // }
+
+
+  // This wil update the token layer. This only works if a new walue is passed to the "newValue". The same value wil fail.
+  async function update() {
+    //Check if logged in account own this layer.
+    if (ownerOfToken == ethereum.selectedAddress) {
+
+      layer = $("#inputToken").val()
+      layerPosition = []
+      newValue = []
+
+      for (var i = 0; i < currentLeverValues.length; i++) {
+          //If new value is not the same as the old value. update this.
+          if (currentLeverValues[i] != $("#select" + i).val()) {
+            layerPosition.add(i)
+            newValue.add($("#select" + i).val())
+          }
+        }
+    console.log(layerPosition)
+    console.log(newValue)
+
+      if (newValue !=  []) {
+        // Send update layer
+        txChangeToken = await contractWithSigner.useControlToken([layer], [layerPosition], [newValue])
+        //Checks to see if block is mined to the BC
+        txChangeToken.wait(1).then(function(value, error) {
+          if (value.confirmations > 0) {
+            console.log("Change made to token " + tokenID[layer])
+            getState()
+          } else {
+            //No change made
+            console.log("Error on change")
+            getState()
+          }
+        });
+        console.log(txChangeToken)
+
+      } else {
+        console.log("You are trying to update the layer to it´s current state, no update needed.")
+      }
+
+
+    } else {
+      console.log("You do not own this token")
+    }
+}
+
+
+function setToCurrent() {
+ for (var i = 0; i < currentLeverValues.length; i++) {
+   $("#select" + i).val(currentLeverValues[i])
+ }
+}
+
+// Adds new dropdowns.
+function addChoices() {
+  //Clear out previous content.
+  $("#layerUpdate").html("")
+
+   for (var i = 0; i < currentLeverValues.length; i++) {
+     var selectLayer = $("#layerUpdate");
+     var para = document.createElement("select");
+     para.setAttribute("id", "select" + i);
+       for (var j = allMin[i]; j <= allMax[i]; j++) {
+         var option = document.createElement('option');
+         option.text = option.value = j;
+         para.add(option, 0);
+       }
+       selectLayer.append(para)
+     }
+     //Set the dropdown to current value
+     setToCurrent()
+
+}
+
+
+
+
+
+
+
 
   // Force page refreshes on network changes
   {
