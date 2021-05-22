@@ -29,7 +29,7 @@ You will now be able to access the server-delivered version of this boilerplate.
 ## How to use:
 
 
-This page lets you log onto it with MetaMask
+This page lets you log onto it with MetaMask.
 Then it lets you insert the layer token ID. There has been added one placeholder layer id for testing.
 By connecting to Metamask and clicking the different buttons,  you can see who owns the layer(their eth address) and the layer value(the state selected of the layer).
 
