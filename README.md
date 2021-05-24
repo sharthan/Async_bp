@@ -20,6 +20,7 @@ https://nodejs.org/en/ and download the latest version.
 `HTTP-server`
 
 4) Copy and paste one of the addresses to your browser where you write in the URL ( e.g., 192.128.55.8080:3001).
+5) Click on the "indexbp.html" link
 
 You will now be able to access the server-delivered version of this boilerplate. 
 
