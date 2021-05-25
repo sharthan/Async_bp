@@ -15,3 +15,8 @@
   font-size: 16px;
   text-align: center;
 }
+
+select{
+    text-align-last:right;
+    padding-right: 36px;
+}
