@@ -51,10 +51,11 @@ Data number  1454 is the token control Id you will need to access this token fro
 ### Using this boilerplate with Infura for a user that does not have MetaMask.
 
 How to connect with, e.g., Infura instead of MetaMask.
-At line 44 in index_bp.html:   const provider = new ethers.providers.Web3Provider(window.ethereum)
+At line 44 in index_bp.html:   
+`const provider = new ethers.providers.Web3Provider(window.ethereum)`
 
-Replace it with. 
-  const provider = new ethers.providers.JsonRpcProvider("https://rinkeby.infura.io/v3/XXXXXXXXXXXXXXXXXXXXXXXX")
+Replace it with.
+`const provider = new ethers.providers.JsonRpcProvider("https://rinkeby.infura.io/v3/XXXXXXXXXXXXXXXXXXXXXXXX")`
 
 Where XXXXXX is your code, you get from the Eth settings page in Infura after creating a project there.
 
